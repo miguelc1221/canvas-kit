@@ -2,6 +2,7 @@ import * as React from 'react';
 import ReactDOM from 'react-dom';
 import styled from '@emotion/styled';
 import {keyframes} from '@emotion/core';
+import {spacing} from '@workday/canvas-kit-react-core';
 import Popup, {
   PopupPadding,
   usePopupStack,
@@ -11,7 +12,7 @@ import Popup, {
 } from '@workday/canvas-kit-react-popup';
 import {PopupStack} from '@workday/canvas-kit-popup-stack';
 
-import {ModalWidth} from './Modal';
+import {defaultModalWidth, ModalWidth} from './Modal';
 
 export interface ModalContentProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
@@ -24,8 +25,7 @@ export interface ModalContentProps extends React.HTMLAttributes<HTMLDivElement> 
    */
   padding: PopupPadding;
   /**
-   * The width of the Modal. Accepts `s` or `l`.
-   * @default ModalWidth.s
+   * The width of the Modal.
    */
   width: ModalWidth;
   /**
@@ -72,28 +72,31 @@ const fadeIn = keyframes`
 `;
 
 const Container = styled('div')({
+  display: 'inline-block',
+  verticalAlign: 'middle',
+  textAlign: 'center',
+  overflow: 'hidden auto',
   position: 'fixed',
   top: 0,
   left: 0,
-  width: '100vw',
   height: '100vh',
   background: 'rgba(0,0,0,0.65)',
   animationName: `${fadeIn}`,
   animationDuration: '0.3s',
+  '::before': {
+    content: '""',
+    display: 'inline-block',
+    height: '100%',
+    verticalAlign: 'middle',
+  },
 });
 
-// This centering container helps fix an issue with Chrome. Chrome doesn't normally do subpixel
-// positioning, but seems to when using flexbox centering. This messes up Popper calculations inside
-// the Modal. The centering container forces a "center" pixel calculation by making sure the width
-// is always an even number
 const CenteringContainer = styled('div')({
-  height: '100vh',
-  display: 'flex',
-  position: 'absolute',
-  left: 0,
+  display: 'inline-block',
+  textAlign: 'left',
   top: 0,
-  alignItems: 'center',
-  justifyContent: 'center',
+  verticalAlign: 'middle',
+  margin: `${spacing.s} auto`,
 });
 
 const transformOrigin = {
@@ -180,9 +183,21 @@ const useInitialFocus = (
   }, [modalRef, firstFocusRef]);
 };
 
+const useRemoveBodyScroll = () => {
+  React.useLayoutEffect(() => {
+    const originalOverflow = document.documentElement.style.overflow;
+
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+};
+
 const ModalContent = ({
   ariaLabel,
-  width = ModalWidth.s,
+  width = defaultModalWidth,
   padding = PopupPadding.l,
   container,
   handleClose,
@@ -199,6 +214,7 @@ const ModalContent = ({
   useFocusTrap(stackRef);
   useInitialFocus(stackRef, firstFocusRef);
   useAssistiveHideSiblings(stackRef);
+  useRemoveBodyScroll();
 
   // special handling for clicking on the overlay
   const onOverlayClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -209,13 +225,15 @@ const ModalContent = ({
   };
   const windowSize = useWindowSize();
 
+  // Chrome doesn't normally do subpixel
+  // positioning, but seems to when using flexbox centering. This messes up Popper calculations inside
+  // the Modal. The centering container forces a "center" pixel calculation by making sure the width
+  // is always an even number
+  const containerWidth = windowSize.width % 2 === 1 ? 'calc(100vw - 1px)' : '100vw';
+
   const content = (
-    <Container {...elemProps}>
-      <CenteringContainer
-        ref={centeringRef}
-        style={{width: windowSize.width % 2 === 1 ? 'calc(100vw - 1px)' : '100vw'}}
-        onMouseDown={onOverlayClick}
-      >
+    <Container ref={centeringRef} onMouseDown={onOverlayClick} style={{width: containerWidth}}>
+      <CenteringContainer {...elemProps}>
         <Popup
           width={width}
           heading={heading}

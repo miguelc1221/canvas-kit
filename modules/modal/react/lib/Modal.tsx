@@ -2,10 +2,9 @@ import * as React from 'react';
 import {PopupPadding} from '@workday/canvas-kit-react-popup';
 import ModalContent, {ModalContentProps} from './ModalContent';
 
-export enum ModalWidth {
-  s = '440px',
-  m = '800px',
-}
+export type ModalWidth = number | string;
+
+export const defaultModalWidth = '440px';
 
 export interface ModalProps extends Omit<ModalContentProps, 'padding' | 'width' | 'container'> {
   padding?: PopupPadding;
@@ -21,7 +20,7 @@ export interface ModalProps extends Omit<ModalContentProps, 'padding' | 'width' 
 const Modal = ({
   open = false,
   padding = PopupPadding.l,
-  width = ModalWidth.s,
+  width = defaultModalWidth,
   container,
   ...modalContentProps
 }: ModalProps): JSX.Element | null =>
@@ -31,7 +30,7 @@ const Modal = ({
   ) : null;
 
 Modal.Padding = PopupPadding;
-Modal.Width = ModalWidth;
+Modal.Width = defaultModalWidth;
 
 export default Modal;
 

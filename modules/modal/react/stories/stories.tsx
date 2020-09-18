@@ -23,7 +23,12 @@ export const Default = () => {
   return (
     <>
       <DeleteButton {...targetProps}>Delete Item</DeleteButton>
-      <Modal data-testid="TestModal" heading={'Delete Item'} {...modalProps}>
+      <Modal data-testid="TestModal" heading={'Delete Item'} {...modalProps} width={'600px'}>
+        {/* <ul>
+          {Array.from(Array(50)).map((v, idx) => {
+            return <li>{idx}</li>;
+          })}
+        </ul> */}
         <p>Are you sure you'd like to delete the item titled 'My Item'?</p>
         <DeleteButton style={{marginRight: '16px'}} onClick={closeModal}>
           Delete
